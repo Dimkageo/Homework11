@@ -2,6 +2,7 @@ package com.example.servlets;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.servlet.ServletException;
@@ -14,7 +15,8 @@ import java.util.TimeZone;
 @WebServlet("/time")
 public class TimeServlet extends HttpServlet {
     public static final String DEFAULT_TIMEZONE = "UTC";
-    public static final int MILLISECONDS_TO_HOUR = 3600000;
+//    public static final int MILLISECONDS_TO_HOUR = 3600000;
+    public static final int SECONDS_TO_HOUR = 36000;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -27,10 +29,23 @@ public class TimeServlet extends HttpServlet {
             TimeZone timeZone = TimeZone.getTimeZone(DEFAULT_TIMEZONE);
 
             if (timezoneParam != null ) {
-                String stringZoneID = timezoneParam.substring(3).trim();
+//                String stringZoneID = timezoneParam.substring(3).trim();
 
-                int zoneId = Integer.parseInt(stringZoneID);
-                timeZone.setRawOffset(zoneId * MILLISECONDS_TO_HOUR);
+                SimpleDateFormat inputFormat = new SimpleDateFormat("zzz");
+                SimpleDateFormat outputFormat = new SimpleDateFormat("Z");
+
+                String offset = null;
+                try {
+                    Date parsedDate = inputFormat.parse(timezoneParam);
+                    offset = outputFormat.format(parsedDate);
+                    timeZone.setRawOffset(Integer.parseInt(offset));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    // Обробка помилки, якщо виникає проблема з парсингом
+                }
+
+                int zoneId = Integer.parseInt(offset);
+                timeZone.setRawOffset(zoneId * SECONDS_TO_HOUR);
             }
 
             // Отримуємо поточний час та форматуємо його
